@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "prettier": "^3.0.0"
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "lint": "prettier . --write"
+  }
+}

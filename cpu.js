@@ -5,7 +5,7 @@ class CPU {
   constructor(memory) {
     this.memory = memory;
 
-    this.registerNames = ["ip", "acc", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8"];
+    this.registerNames = ["ip", "acc", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "sp", "fp"];
 
     this.registers = createMemory(this.registerNames.length * 2);
 
@@ -14,6 +14,11 @@ class CPU {
 
       return map;
     }, {});
+
+    this.setRegister("sp", memory.byteLength - 1 - 1);
+    this.setRegister("fp", memory.byteLength - 1 - 1);
+
+    this.stackFrameSize = 0;
   }
 
   debug() {
@@ -23,15 +28,15 @@ class CPU {
     console.log();
   }
 
-  viewMemoryAt(address) {
-    const nextEightBytes = Array.from(
+  viewMemoryAt(address, n = 8) {
+    const nextNBytes = Array.from(
       {
-        length: 8,
+        length: n,
       },
       (_, i) => this.memory.getUint8(address + i)
     ).map((v) => `0x${v.toString(16).padStart(2, "0")}`);
 
-    console.log(`0x${address.toString(16).padStart(4, "0")}: ${nextEightBytes.join(" ")}`);
+    console.log(`0x${address.toString(16).padStart(4, "0")}: ${nextNBytes.join(" ")}`);
   }
 
   getRegister(name) {
@@ -68,19 +73,79 @@ class CPU {
     return instruction;
   }
 
+  stackPush(value) {
+    const spAddress = this.getRegister("sp");
+
+    this.memory.setUint16(spAddress, value);
+    this.setRegister("sp", spAddress - 2);
+
+    this.stackFrameSize += 2;
+  }
+
+  stackPop() {
+    const nextSpAdress = this.getRegister("sp") + 2;
+
+    this.setRegister("sp", nextSpAdress);
+
+    this.stackFrameSize -= 2;
+
+    return this.memory.getUint16(nextSpAdress);
+  }
+
+  stackPushState() {
+    for (let i = 1; i <= 8; i++) {
+      this.stackPush(this.getRegister(`r${i}`));
+    }
+
+    this.stackPush(this.getRegister("ip"));
+    this.stackPush(this.stackFrameSize + 2);
+
+    this.setRegister("fp", this.getRegister("sp"));
+
+    this.stackFrameSize = 0;
+  }
+
+  stackPopState() {
+    const framePointerAddress = this.getRegister("fp");
+
+    this.setRegister("sp", framePointerAddress);
+
+    this.stackFrameSize = this.stackPop();
+
+    const stackFrameSize = this.stackFrameSize;
+
+    this.setRegister("ip", this.stackPop());
+
+    for (let i = 8; i >= 1; i--) {
+      this.setRegister(`r${i}`, this.stackPop());
+    }
+
+    const nArgs = this.stackPop();
+
+    for (let i = 0; i < nArgs; i++) {
+      this.stackPop();
+    }
+
+    this.setRegister("fp", framePointerAddress + stackFrameSize);
+  }
+
+  fetchRegisterIndex() {
+    return (this.fetch() % this.registerNames.length) * 2;
+  }
+
   execute(instruction) {
     switch (instruction) {
       case instructions.MOV_LIT_REG: {
         const literal = this.fetch16();
-        const register = (this.fetch() % this.registerNames.length) * 2;
+        const register = this.fetchRegisterIndex();
 
         this.registers.setUint16(register, literal);
 
         return;
       }
       case instructions.MOV_REG_REG: {
-        const registerFrom = (this.fetch() % this.registerNames.length) * 2;
-        const registerTo = (this.fetch() % this.registerNames.length) * 2;
+        const registerFrom = this.fetchRegisterIndex();
+        const registerTo = this.fetchRegisterIndex();
         const value = this.registers.getUint16(registerFrom);
 
         this.registers.setUint16(registerTo, value);
@@ -88,7 +153,7 @@ class CPU {
         return;
       }
       case instructions.MOV_REG_MEM: {
-        const registerFrom = (this.fetch() % this.registerNames.length) * 2;
+        const registerFrom = this.fetchRegisterIndex();
         const address = this.fetch16();
         const value = this.registers.getUint16(registerFrom);
 
@@ -98,7 +163,7 @@ class CPU {
       }
       case instructions.MOV_MEM_REG: {
         const address = this.fetch16();
-        const registerTo = (this.fetch() % this.registerNames.length) * 2;
+        const registerTo = this.fetchRegisterIndex();
         const value = this.memory.getUint16(address);
 
         this.registers.setUint16(registerTo, value);
@@ -123,6 +188,50 @@ class CPU {
         if (value !== this.getRegister("acc")) {
           this.setRegister("ip", address);
         }
+
+        return;
+      }
+      case instructions.PSH_LIT: {
+        const value = this.fetch16();
+
+        this.stackPush(value);
+
+        return;
+      }
+      case instructions.PSH_REG: {
+        const registerIndex = this.fetchRegisterIndex();
+
+        this.stackPush(this.registers.getUint16(registerIndex));
+
+        return;
+      }
+      case instructions.POP: {
+        const registerIndex = this.fetchRegisterIndex();
+        const value = this.stackPop();
+
+        this.registers.setUint16(registerIndex, value);
+
+        return;
+      }
+      case instructions.CAL_LIT: {
+        const address = this.fetch16();
+
+        this.stackPushState();
+        this.setRegister("ip", address);
+
+        return;
+      }
+      case instructions.CAL_REG: {
+        const registerIndex = this.fetchRegisterIndex();
+        const address = this.registers.getUint16(registerIndex);
+
+        this.stackPushState();
+        this.setRegister("ip", address);
+
+        return;
+      }
+      case instructions.RET: {
+        this.stackPopState();
 
         return;
       }

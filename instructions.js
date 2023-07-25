@@ -13,3 +13,5 @@ export const RET = 0x60;
 export const ADD_REG_REG = 0x1c;
 
 export const JMP_NOT_EQ = 0x41;
+
+export const HLT = 0xff;

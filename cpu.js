@@ -15,8 +15,8 @@ class CPU {
       return map;
     }, {});
 
-    this.setRegister("sp", memory.byteLength - 1 - 1);
-    this.setRegister("fp", memory.byteLength - 1 - 1);
+    this.setRegister("sp", 0xffff - 1);
+    this.setRegister("fp", 0xffff - 1);
 
     this.stackFrameSize = 0;
   }
@@ -171,11 +171,11 @@ class CPU {
         return;
       }
       case instructions.ADD_REG_REG: {
-        const r1 = this.fetch();
-        const r2 = this.fetch();
+        const r1 = this.fetchRegisterIndex();
+        const r2 = this.fetchRegisterIndex();
 
-        const r1Value = this.registers.getUint16(r1 * 2);
-        const r2Value = this.registers.getUint16(r2 * 2);
+        const r1Value = this.registers.getUint16(r1);
+        const r2Value = this.registers.getUint16(r2);
 
         this.setRegister("acc", r1Value + r2Value);
 
@@ -235,6 +235,9 @@ class CPU {
 
         return;
       }
+      case instructions.HLT: {
+        return true;
+      }
     }
   }
 
@@ -242,6 +245,14 @@ class CPU {
     const instruction = this.fetch();
 
     return this.execute(instruction);
+  }
+
+  run() {
+    const halt = this.step();
+
+    if (!halt) {
+      setImmediate(() => this.run());
+    }
   }
 }
 

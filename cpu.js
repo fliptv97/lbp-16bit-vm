@@ -383,7 +383,7 @@ class CPU {
         const register = this.fetchRegisterIndex();
         const registerValue = this.registers.getUint16(r1);
 
-        const result = (~registerValue) & 0xffff;
+        const result = ~registerValue & 0xffff;
 
         this.setRegister("acc", result);
 

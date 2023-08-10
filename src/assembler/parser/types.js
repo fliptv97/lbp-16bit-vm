@@ -13,4 +13,4 @@ export let binaryOperation = asType("BINARY_OPERATION");
 export let bracketedExpression = asType("BRACKETED_EXPRESSION");
 export let squareBracketExpression = asType("SQUARE_BRACKET_EXPRESSION");
 
-export let instruction = asType("INSTRUCTION")
+export let instruction = asType("INSTRUCTION");

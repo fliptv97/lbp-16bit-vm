@@ -1,15 +1,6 @@
-import { inspect } from "node:util";
+import as from "arcsecond";
 
-import instructionsParser from "./instructions.js";
+import { labelParser } from "./common.js";
+import instructionParser from "./instructions.js";
 
-let deepLog = (x) =>
-  console.log(
-    inspect(x, {
-      depth: Infinity,
-      colors: true,
-    })
-  );
-
-let state = instructionsParser.run("hlt");
-
-deepLog(state);
+export default as.many(as.choice([instructionParser, labelParser]));

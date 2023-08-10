@@ -1,5 +1,5 @@
 import createMemory from "./create-memory.js";
-import * as instructions from "./instructions.js";
+import instructions from "./instructions/index.js";
 
 class CPU {
   constructor(memory) {
@@ -135,7 +135,7 @@ class CPU {
 
   execute(instruction) {
     switch (instruction) {
-      case instructions.MOV_LIT_REG: {
+      case instructions.MOV_LIT_REG.opcode: {
         let literal = this.fetch16();
         let register = this.fetchRegisterIndex();
 
@@ -143,7 +143,7 @@ class CPU {
 
         return;
       }
-      case instructions.MOV_REG_REG: {
+      case instructions.MOV_REG_REG.opcode: {
         let registerFrom = this.fetchRegisterIndex();
         let registerTo = this.fetchRegisterIndex();
         let value = this.registers.getUint16(registerFrom);
@@ -152,7 +152,7 @@ class CPU {
 
         return;
       }
-      case instructions.MOV_REG_MEM: {
+      case instructions.MOV_REG_MEM.opcode: {
         let registerFrom = this.fetchRegisterIndex();
         let address = this.fetch16();
         let value = this.registers.getUint16(registerFrom);
@@ -161,7 +161,7 @@ class CPU {
 
         return;
       }
-      case instructions.MOV_MEM_REG: {
+      case instructions.MOV_MEM_REG.opcode: {
         let address = this.fetch16();
         let registerTo = this.fetchRegisterIndex();
         let value = this.memory.getUint16(address);
@@ -170,7 +170,7 @@ class CPU {
 
         return;
       }
-      case instructions.MOV_LIT_MEM: {
+      case instructions.MOV_LIT_MEM.opcode: {
         let value = this.fetch16();
         let address = this.fetch16();
 
@@ -178,7 +178,7 @@ class CPU {
 
         return;
       }
-      case instructions.MOV_REG_PTR_REG: {
+      case instructions.MOV_REG_PTR_REG.opcode: {
         let r1 = this.fetchRegisterIndex();
         let r2 = this.fetchRegisterIndex();
         let ptr = this.registers.getUint16(r1);
@@ -188,7 +188,7 @@ class CPU {
 
         return;
       }
-      case instructions.MOV_LIT_OFF_REG: {
+      case instructions.MOV_LIT_OFF_REG.opcode: {
         let baseAddress = this.fetch16();
         let r1 = this.fetchRegisterIndex();
         let r2 = this.fetchRegisterIndex();
@@ -199,7 +199,7 @@ class CPU {
 
         return;
       }
-      case instructions.ADD_LIT_REG: {
+      case instructions.ADD_LIT_REG.opcode: {
         let value = this.fetch16();
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
@@ -208,7 +208,7 @@ class CPU {
 
         return;
       }
-      case instructions.ADD_REG_REG: {
+      case instructions.ADD_REG_REG.opcode: {
         let r1 = this.fetchRegisterIndex();
         let r2 = this.fetchRegisterIndex();
 
@@ -219,7 +219,7 @@ class CPU {
 
         return;
       }
-      case instructions.SUB_LIT_REG: {
+      case instructions.SUB_LIT_REG.opcode: {
         let value = this.fetch16();
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
@@ -228,7 +228,7 @@ class CPU {
 
         return;
       }
-      case instructions.SUB_REG_LIT: {
+      case instructions.SUB_REG_LIT.opcode: {
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
         let value = this.fetch16();
@@ -237,7 +237,7 @@ class CPU {
 
         return;
       }
-      case instructions.SUB_REG_REG: {
+      case instructions.SUB_REG_REG.opcode: {
         let r1 = this.fetchRegisterIndex();
         let r2 = this.fetchRegisterIndex();
         let r1Value = this.registers.getUint16(r1);
@@ -247,7 +247,7 @@ class CPU {
 
         return;
       }
-      case instructions.MUL_LIT_REG: {
+      case instructions.MUL_LIT_REG.opcode: {
         let value = this.fetch16();
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
@@ -256,7 +256,7 @@ class CPU {
 
         return;
       }
-      case instructions.MUL_REG_REG: {
+      case instructions.MUL_REG_REG.opcode: {
         let r1 = this.fetchRegisterIndex();
         let r2 = this.fetchRegisterIndex();
         let r1Value = this.registers.getUint16(r1);
@@ -266,7 +266,7 @@ class CPU {
 
         return;
       }
-      case instructions.INC_REG: {
+      case instructions.INC_REG.opcode: {
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
 
@@ -274,7 +274,7 @@ class CPU {
 
         return;
       }
-      case instructions.DEC_REG: {
+      case instructions.DEC_REG.opcode: {
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
 
@@ -282,7 +282,7 @@ class CPU {
 
         return;
       }
-      case instructions.LSF_REG_LIT: {
+      case instructions.LSF_REG_LIT.opcode: {
         let register = this.fetchRegisterIndex();
         // Why do we fetch instead of fetch16?
         let literal = this.fetch();
@@ -292,7 +292,7 @@ class CPU {
 
         return;
       }
-      case instructions.LSF_REG_REG: {
+      case instructions.LSF_REG_REG.opcode: {
         let r1 = this.fetchRegisterIndex();
         let r2 = this.fetchRegisterIndex();
         let r1Value = this.registers.getUint16(r1);
@@ -302,7 +302,7 @@ class CPU {
 
         return;
       }
-      case instructions.RSF_REG_LIT: {
+      case instructions.RSF_REG_LIT.opcode: {
         let register = this.fetchRegisterIndex();
         // Why do we fetch instead of fetch16?
         let literal = this.fetch();
@@ -312,7 +312,7 @@ class CPU {
 
         return;
       }
-      case instructions.RSF_REG_REG: {
+      case instructions.RSF_REG_REG.opcode: {
         let r1 = this.fetchRegisterIndex();
         let r2 = this.fetchRegisterIndex();
         let r1Value = this.registers.getUint16(r1);
@@ -322,7 +322,7 @@ class CPU {
 
         return;
       }
-      case instructions.AND_REG_LIT: {
+      case instructions.AND_REG_LIT.opcode: {
         let register = this.fetchRegisterIndex();
         let literal = this.fetch16();
         let registerValue = this.registers.getUint16(register);
@@ -331,7 +331,7 @@ class CPU {
 
         return;
       }
-      case instructions.AND_REG_REG: {
+      case instructions.AND_REG_REG.opcode: {
         let r1 = this.fetchRegisterIndex();
         let r2 = this.fetchRegisterIndex();
         let r1Value = this.registers.getUint16(r1);
@@ -341,7 +341,7 @@ class CPU {
 
         return;
       }
-      case instructions.OR_REG_LIT: {
+      case instructions.OR_REG_LIT.opcode: {
         let register = this.fetchRegisterIndex();
         let literal = this.fetch16();
         let registerValue = this.registers.getUint16(register);
@@ -350,7 +350,7 @@ class CPU {
 
         return;
       }
-      case instructions.OR_REG_REG: {
+      case instructions.OR_REG_REG.opcode: {
         let r1 = this.fetchRegisterIndex();
         let r2 = this.fetchRegisterIndex();
         let r1Value = this.registers.getUint16(r1);
@@ -360,7 +360,7 @@ class CPU {
 
         return;
       }
-      case instructions.XOR_REG_LIT: {
+      case instructions.XOR_REG_LIT.opcode: {
         let register = this.fetchRegisterIndex();
         let literal = this.fetch16();
         let registerValue = this.registers.getUint16(register);
@@ -369,7 +369,7 @@ class CPU {
 
         return;
       }
-      case instructions.XOR_REG_REG: {
+      case instructions.XOR_REG_REG.opcode: {
         let r1 = this.fetchRegisterIndex();
         let r2 = this.fetchRegisterIndex();
         let r1Value = this.registers.getUint16(r1);
@@ -379,7 +379,7 @@ class CPU {
 
         return;
       }
-      case instructions.NOT: {
+      case instructions.NOT.opcode: {
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
 
@@ -389,7 +389,7 @@ class CPU {
 
         return;
       }
-      case instructions.JEQ_LIT: {
+      case instructions.JEQ_LIT.opcode: {
         let value = this.fetch16();
         let address = this.fetch16();
 
@@ -399,7 +399,7 @@ class CPU {
 
         return;
       }
-      case instructions.JEQ_REG: {
+      case instructions.JEQ_REG.opcode: {
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
         let address = this.fetch16();
@@ -410,7 +410,7 @@ class CPU {
 
         return;
       }
-      case instructions.JNE_LIT: {
+      case instructions.JNE_LIT.opcode: {
         let value = this.fetch16();
         let address = this.fetch16();
 
@@ -420,7 +420,7 @@ class CPU {
 
         return;
       }
-      case instructions.JNE_REG: {
+      case instructions.JNE_REG.opcode: {
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
         let address = this.fetch16();
@@ -431,7 +431,7 @@ class CPU {
 
         return;
       }
-      case instructions.JLT_LIT: {
+      case instructions.JLT_LIT.opcode: {
         let value = this.fetch16();
         let address = this.fetch16();
 
@@ -441,7 +441,7 @@ class CPU {
 
         return;
       }
-      case instructions.JLT_REG: {
+      case instructions.JLT_REG.opcode: {
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
         let address = this.fetch16();
@@ -452,7 +452,7 @@ class CPU {
 
         return;
       }
-      case instructions.JGT_LIT: {
+      case instructions.JGT_LIT.opcode: {
         let value = this.fetch16();
         let address = this.fetch16();
 
@@ -462,7 +462,7 @@ class CPU {
 
         return;
       }
-      case instructions.JGT_REG: {
+      case instructions.JGT_REG.opcode: {
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
         let address = this.fetch16();
@@ -473,7 +473,7 @@ class CPU {
 
         return;
       }
-      case instructions.JLE_LIT: {
+      case instructions.JLE_LIT.opcode: {
         let value = this.fetch16();
         let address = this.fetch16();
 
@@ -483,7 +483,7 @@ class CPU {
 
         return;
       }
-      case instructions.JLE_REG: {
+      case instructions.JLE_REG.opcode: {
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
         let address = this.fetch16();
@@ -494,7 +494,7 @@ class CPU {
 
         return;
       }
-      case instructions.JGE_LIT: {
+      case instructions.JGE_LIT.opcode: {
         let value = this.fetch16();
         let address = this.fetch16();
 
@@ -504,7 +504,7 @@ class CPU {
 
         return;
       }
-      case instructions.JGE_REG: {
+      case instructions.JGE_REG.opcode: {
         let register = this.fetchRegisterIndex();
         let registerValue = this.registers.getUint16(register);
         let address = this.fetch16();
@@ -515,21 +515,21 @@ class CPU {
 
         return;
       }
-      case instructions.PSH_LIT: {
+      case instructions.PSH_LIT.opcode: {
         let value = this.fetch16();
 
         this.stackPush(value);
 
         return;
       }
-      case instructions.PSH_REG: {
+      case instructions.PSH_REG.opcode: {
         let registerIndex = this.fetchRegisterIndex();
 
         this.stackPush(this.registers.getUint16(registerIndex));
 
         return;
       }
-      case instructions.POP: {
+      case instructions.POP.opcode: {
         let registerIndex = this.fetchRegisterIndex();
         let value = this.stackPop();
 
@@ -537,7 +537,7 @@ class CPU {
 
         return;
       }
-      case instructions.CAL_LIT: {
+      case instructions.CAL_LIT.opcode: {
         let address = this.fetch16();
 
         this.stackPushState();
@@ -545,7 +545,7 @@ class CPU {
 
         return;
       }
-      case instructions.CAL_REG: {
+      case instructions.CAL_REG.opcode: {
         let registerIndex = this.fetchRegisterIndex();
         let address = this.registers.getUint16(registerIndex);
 
@@ -554,12 +554,12 @@ class CPU {
 
         return;
       }
-      case instructions.RET: {
+      case instructions.RET.opcode: {
         this.stackPopState();
 
         return;
       }
-      case instructions.HLT: {
+      case instructions.HLT.opcode: {
         return true;
       }
     }

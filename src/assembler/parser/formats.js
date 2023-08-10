@@ -25,6 +25,27 @@ export let litReg = (mnemonic, type) =>
     });
   });
 
+export let regLit = (mnemonic, type) =>
+  as.coroutine((run) => {
+    run(ignoreCaseParser(mnemonic));
+    run(as.whitespace);
+
+    let arg1 = run(registerParser);
+
+    run(as.optionalWhitespace);
+    run(as.char(","));
+    run(as.optionalWhitespace);
+
+    let arg2 = run(as.choice([hexLiteralParser, squareBracketExpressionParser]));
+
+    run(as.optionalWhitespace);
+
+    return T.instruction({
+      instruction: type,
+      args: [arg1, arg2],
+    });
+  });
+
 export let regReg = (mnemonic, type) =>
   as.coroutine((run) => {
     run(ignoreCaseParser(mnemonic));

@@ -2,6 +2,7 @@ import as from "arcsecond";
 import {
   regReg,
   litReg,
+  regLit,
   memReg,
   regMem,
   litMem,
@@ -23,11 +24,15 @@ export let mov = as.choice([
 ]);
 
 export let add = as.choice([regReg("add", "ADD_REG_REG"), litReg("add", "ADD_LIT_REG")]);
-export let sub = as.choice([regReg("sub", "SUB_REG_REG"), litReg("sub", "SUB_LIT_REG")]);
+export let sub = as.choice([
+  regReg("sub", "SUB_REG_REG"),
+  litReg("sub", "SUB_LIT_REG"),
+  regLit("sub", "SUB_REG_LIT"),
+]);
 export let mul = as.choice([regReg("mul", "MUL_REG_REG"), litReg("mul", "MUL_LIT_REG")]);
 
-export let lsf = as.choice([regReg("lsf", "LSF_REG_REG"), litReg("lsf", "LSF_LIT_REG")]);
-export let rsf = as.choice([regReg("rsf", "RSF_REG_REG"), litReg("rsf", "RSF_LIT_REG")]);
+export let lsf = as.choice([regReg("lsf", "LSF_REG_REG"), regLit("lsf", "LSF_LIT_REG")]);
+export let rsf = as.choice([regReg("rsf", "RSF_REG_REG"), regLit("rsf", "RSF_LIT_REG")]);
 
 export let and = as.choice([regReg("and", "AND_REG_REG"), litReg("and", "AND_LIT_REG")]);
 export let or = as.choice([regReg("or", "OR_REG_REG"), litReg("or", "OR_LIT_REG")]);

@@ -29,6 +29,11 @@ export let variableParser = as
   .sequenceOf([as.char("!"), validIdentifier])
   .map((results) => T.variable(results[1]));
 
+export let labelParser = as
+  .sequenceOf([validIdentifier, as.char(":"), as.optionalWhitespace])
+  .map(([labelName]) => labelName)
+  .map(T.label);
+
 export let operatorParser = as.choice([
   as.char("+").map(T.opPlus),
   as.char("-").map(T.opMinus),

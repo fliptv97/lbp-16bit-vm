@@ -1,8 +1,7 @@
-const createMemory = (sizeInBytes) => {
-  const ab = new ArrayBuffer(sizeInBytes);
-  const dv = new DataView(ab);
+let createMemory = (sizeInBytes) => {
+  let ab = new ArrayBuffer(sizeInBytes);
 
-  return dv;
+  return new DataView(ab);
 };
 
 export default createMemory;

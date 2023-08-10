@@ -29,7 +29,7 @@ class CPU {
   }
 
   viewMemoryAt(address, n = 8) {
-    const nextNBytes = Array.from(
+    let nextNBytes = Array.from(
       {
         length: n,
       },
@@ -56,8 +56,8 @@ class CPU {
   }
 
   fetch() {
-    const nextInstructionAddress = this.getRegister("ip");
-    const instruction = this.memory.getUint8(nextInstructionAddress);
+    let nextInstructionAddress = this.getRegister("ip");
+    let instruction = this.memory.getUint8(nextInstructionAddress);
 
     this.setRegister("ip", nextInstructionAddress + 1);
 
@@ -65,8 +65,8 @@ class CPU {
   }
 
   fetch16() {
-    const nextInstructionAddress = this.getRegister("ip");
-    const instruction = this.memory.getUint16(nextInstructionAddress);
+    let nextInstructionAddress = this.getRegister("ip");
+    let instruction = this.memory.getUint16(nextInstructionAddress);
 
     this.setRegister("ip", nextInstructionAddress + 2);
 
@@ -74,7 +74,7 @@ class CPU {
   }
 
   stackPush(value) {
-    const spAddress = this.getRegister("sp");
+    let spAddress = this.getRegister("sp");
 
     this.memory.setUint16(spAddress, value);
     this.setRegister("sp", spAddress - 2);
@@ -83,7 +83,7 @@ class CPU {
   }
 
   stackPop() {
-    const nextSpAdress = this.getRegister("sp") + 2;
+    let nextSpAdress = this.getRegister("sp") + 2;
 
     this.setRegister("sp", nextSpAdress);
 
@@ -106,13 +106,13 @@ class CPU {
   }
 
   stackPopState() {
-    const framePointerAddress = this.getRegister("fp");
+    let framePointerAddress = this.getRegister("fp");
 
     this.setRegister("sp", framePointerAddress);
 
     this.stackFrameSize = this.stackPop();
 
-    const stackFrameSize = this.stackFrameSize;
+    let stackFrameSize = this.stackFrameSize;
 
     this.setRegister("ip", this.stackPop());
 
@@ -120,7 +120,7 @@ class CPU {
       this.setRegister(`r${i}`, this.stackPop());
     }
 
-    const nArgs = this.stackPop();
+    let nArgs = this.stackPop();
 
     for (let i = 0; i < nArgs; i++) {
       this.stackPop();
@@ -136,262 +136,262 @@ class CPU {
   execute(instruction) {
     switch (instruction) {
       case instructions.MOV_LIT_REG: {
-        const literal = this.fetch16();
-        const register = this.fetchRegisterIndex();
+        let literal = this.fetch16();
+        let register = this.fetchRegisterIndex();
 
         this.registers.setUint16(register, literal);
 
         return;
       }
       case instructions.MOV_REG_REG: {
-        const registerFrom = this.fetchRegisterIndex();
-        const registerTo = this.fetchRegisterIndex();
-        const value = this.registers.getUint16(registerFrom);
+        let registerFrom = this.fetchRegisterIndex();
+        let registerTo = this.fetchRegisterIndex();
+        let value = this.registers.getUint16(registerFrom);
 
         this.registers.setUint16(registerTo, value);
 
         return;
       }
       case instructions.MOV_REG_MEM: {
-        const registerFrom = this.fetchRegisterIndex();
-        const address = this.fetch16();
-        const value = this.registers.getUint16(registerFrom);
+        let registerFrom = this.fetchRegisterIndex();
+        let address = this.fetch16();
+        let value = this.registers.getUint16(registerFrom);
 
         this.memory.setUint16(address, value);
 
         return;
       }
       case instructions.MOV_MEM_REG: {
-        const address = this.fetch16();
-        const registerTo = this.fetchRegisterIndex();
-        const value = this.memory.getUint16(address);
+        let address = this.fetch16();
+        let registerTo = this.fetchRegisterIndex();
+        let value = this.memory.getUint16(address);
 
         this.registers.setUint16(registerTo, value);
 
         return;
       }
       case instructions.MOV_LIT_MEM: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        let value = this.fetch16();
+        let address = this.fetch16();
 
         this.memory.setUint16(address, value);
 
         return;
       }
       case instructions.MOV_REG_PTR_REG: {
-        const r1 = this.fetchRegisterIndex();
-        const r2 = this.fetchRegisterIndex();
-        const ptr = this.registers.getUint16(r1);
-        const value = this.memory.getUint16(ptr);
+        let r1 = this.fetchRegisterIndex();
+        let r2 = this.fetchRegisterIndex();
+        let ptr = this.registers.getUint16(r1);
+        let value = this.memory.getUint16(ptr);
 
         this.registers.setUint16(r2, value);
 
         return;
       }
       case instructions.MOV_LIT_OFF_REG: {
-        const baseAddress = this.fetch16();
-        const r1 = this.fetchRegisterIndex();
-        const r2 = this.fetchRegisterIndex();
-        const offset = this.registers.getUint16(r1);
-        const value = this.memory.getUint16(baseAddress + offset);
+        let baseAddress = this.fetch16();
+        let r1 = this.fetchRegisterIndex();
+        let r2 = this.fetchRegisterIndex();
+        let offset = this.registers.getUint16(r1);
+        let value = this.memory.getUint16(baseAddress + offset);
 
         this.registers.setUint16(r2, value);
 
         return;
       }
       case instructions.ADD_LIT_REG: {
-        const value = this.fetch16();
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(register);
+        let value = this.fetch16();
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
 
         this.setRegister("acc", value + registerValue);
 
         return;
       }
       case instructions.ADD_REG_REG: {
-        const r1 = this.fetchRegisterIndex();
-        const r2 = this.fetchRegisterIndex();
+        let r1 = this.fetchRegisterIndex();
+        let r2 = this.fetchRegisterIndex();
 
-        const r1Value = this.registers.getUint16(r1);
-        const r2Value = this.registers.getUint16(r2);
+        let r1Value = this.registers.getUint16(r1);
+        let r2Value = this.registers.getUint16(r2);
 
         this.setRegister("acc", r1Value + r2Value);
 
         return;
       }
-      case instruction.SUB_LIT_REG: {
-        const value = this.fetch16();
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(register);
+      case instructions.SUB_LIT_REG: {
+        let value = this.fetch16();
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
 
         this.setRegister("acc", registerValue - value);
 
         return;
       }
       case instructions.SUB_REG_LIT: {
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(register);
-        const value = this.fetch16();
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
+        let value = this.fetch16();
 
         this.setRegister("acc", registerValue - value);
 
         return;
       }
       case instructions.SUB_REG_REG: {
-        const r1 = this.fetchRegisterIndex();
-        const r2 = this.fetchRegisterIndex();
-        const r1Value = this.registers.getUint16(r1);
-        const r2Value = this.registers.getUint16(r2);
+        let r1 = this.fetchRegisterIndex();
+        let r2 = this.fetchRegisterIndex();
+        let r1Value = this.registers.getUint16(r1);
+        let r2Value = this.registers.getUint16(r2);
 
         this.setRegister("acc", r1Value - r2Value);
 
         return;
       }
       case instructions.MUL_LIT_REG: {
-        const value = this.fetch16();
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(register);
+        let value = this.fetch16();
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
 
         this.setRegister("acc", registerValue * value);
 
         return;
       }
       case instructions.MUL_REG_REG: {
-        const r1 = this.fetchRegisterIndex();
-        const r2 = this.fetchRegisterIndex();
-        const r1Value = this.registers.getUint16(r1);
-        const r2Value = this.registers.getUint16(r2);
+        let r1 = this.fetchRegisterIndex();
+        let r2 = this.fetchRegisterIndex();
+        let r1Value = this.registers.getUint16(r1);
+        let r2Value = this.registers.getUint16(r2);
 
         this.setRegister("acc", r1Value * r2Value);
 
         return;
       }
       case instructions.INC_REG: {
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.setUint16(register);
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
 
         this.registers.setUint16(register, registerValue + 1);
 
         return;
       }
       case instructions.DEC_REG: {
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.setUint16(register);
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
 
         this.registers.setUint16(register, registerValue - 1);
 
         return;
       }
       case instructions.LSF_REG_LIT: {
-        const register = this.fetchRegisterIndex();
+        let register = this.fetchRegisterIndex();
         // Why do we fetch instead of fetch16?
-        const literal = this.fetch();
-        const registerValue = this.registers.getUint16(register);
+        let literal = this.fetch();
+        let registerValue = this.registers.getUint16(register);
 
         this.registers.setUint16(register, registerValue << literal);
 
         return;
       }
       case instructions.LSF_REG_REG: {
-        const r1 = this.fetchRegisterIndex();
-        const r2 = this.fetchRegisterIndex();
-        const r1Value = this.registers.getUint16(r1);
-        const r2Value = this.registers.getUint16(r2);
+        let r1 = this.fetchRegisterIndex();
+        let r2 = this.fetchRegisterIndex();
+        let r1Value = this.registers.getUint16(r1);
+        let r2Value = this.registers.getUint16(r2);
 
-        this.registers.setUint16(register, r1Value << r2Value);
+        this.registers.setUint16(r1, r1Value << r2Value);
 
         return;
       }
       case instructions.RSF_REG_LIT: {
-        const register = this.fetchRegisterIndex();
+        let register = this.fetchRegisterIndex();
         // Why do we fetch instead of fetch16?
-        const literal = this.fetch();
-        const registerValue = this.registers.getUint16(register);
+        let literal = this.fetch();
+        let registerValue = this.registers.getUint16(register);
 
         this.registers.setUint16(register, registerValue >> literal);
 
         return;
       }
       case instructions.RSF_REG_REG: {
-        const r1 = this.fetchRegisterIndex();
-        const r2 = this.fetchRegisterIndex();
-        const r1Value = this.registers.getUint16(r1);
-        const r2Value = this.registers.getUint16(r2);
+        let r1 = this.fetchRegisterIndex();
+        let r2 = this.fetchRegisterIndex();
+        let r1Value = this.registers.getUint16(r1);
+        let r2Value = this.registers.getUint16(r2);
 
-        this.registers.setUint16(register, r1Value >> r2Value);
+        this.registers.setUint16(r1, r1Value >> r2Value);
 
         return;
       }
       case instructions.AND_REG_LIT: {
-        const register = this.fetchRegisterIndex();
-        const literal = this.fetch16();
-        const registerValue = this.registers.getUint16(register);
+        let register = this.fetchRegisterIndex();
+        let literal = this.fetch16();
+        let registerValue = this.registers.getUint16(register);
 
         this.setRegister("acc", registerValue & literal);
 
         return;
       }
       case instructions.AND_REG_REG: {
-        const r1 = this.fetchRegisterIndex();
-        const r2 = this.fetchRegisterIndex();
-        const r1Value = this.registers.getUint16(r1);
-        const r2Value = this.registers.getUint16(r2);
+        let r1 = this.fetchRegisterIndex();
+        let r2 = this.fetchRegisterIndex();
+        let r1Value = this.registers.getUint16(r1);
+        let r2Value = this.registers.getUint16(r2);
 
         this.setRegister("acc", r1Value & r2Value);
 
         return;
       }
       case instructions.OR_REG_LIT: {
-        const register = this.fetchRegisterIndex();
-        const literal = this.fetch16();
-        const registerValue = this.registers.getUint16(register);
+        let register = this.fetchRegisterIndex();
+        let literal = this.fetch16();
+        let registerValue = this.registers.getUint16(register);
 
         this.setRegister("acc", registerValue | literal);
 
         return;
       }
       case instructions.OR_REG_REG: {
-        const r1 = this.fetchRegisterIndex();
-        const r2 = this.fetchRegisterIndex();
-        const r1Value = this.registers.getUint16(r1);
-        const r2Value = this.registers.getUint16(r2);
+        let r1 = this.fetchRegisterIndex();
+        let r2 = this.fetchRegisterIndex();
+        let r1Value = this.registers.getUint16(r1);
+        let r2Value = this.registers.getUint16(r2);
 
         this.setRegister("acc", r1Value | r2Value);
 
         return;
       }
       case instructions.XOR_REG_LIT: {
-        const register = this.fetchRegisterIndex();
-        const literal = this.fetch16();
-        const registerValue = this.registers.getUint16(register);
+        let register = this.fetchRegisterIndex();
+        let literal = this.fetch16();
+        let registerValue = this.registers.getUint16(register);
 
         this.setRegister("acc", registerValue ^ literal);
 
         return;
       }
       case instructions.XOR_REG_REG: {
-        const r1 = this.fetchRegisterIndex();
-        const r2 = this.fetchRegisterIndex();
-        const r1Value = this.registers.getUint16(r1);
-        const r2Value = this.registers.getUint16(r2);
+        let r1 = this.fetchRegisterIndex();
+        let r2 = this.fetchRegisterIndex();
+        let r1Value = this.registers.getUint16(r1);
+        let r2Value = this.registers.getUint16(r2);
 
         this.setRegister("acc", r1Value ^ r2Value);
 
         return;
       }
       case instructions.NOT: {
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(r1);
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
 
-        const result = ~registerValue & 0xffff;
+        let result = ~registerValue & 0xffff;
 
         this.setRegister("acc", result);
 
         return;
       }
       case instructions.JEQ_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        let value = this.fetch16();
+        let address = this.fetch16();
 
         if (value === this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -400,9 +400,9 @@ class CPU {
         return;
       }
       case instructions.JEQ_REG: {
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(register);
-        const address = this.fetch16();
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
+        let address = this.fetch16();
 
         if (registerValue === this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -411,8 +411,8 @@ class CPU {
         return;
       }
       case instructions.JNE_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        let value = this.fetch16();
+        let address = this.fetch16();
 
         if (value !== this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -421,9 +421,9 @@ class CPU {
         return;
       }
       case instructions.JNE_REG: {
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(register);
-        const address = this.fetch16();
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
+        let address = this.fetch16();
 
         if (registerValue !== this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -432,8 +432,8 @@ class CPU {
         return;
       }
       case instructions.JLT_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        let value = this.fetch16();
+        let address = this.fetch16();
 
         if (value < this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -442,9 +442,9 @@ class CPU {
         return;
       }
       case instructions.JLT_REG: {
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(register);
-        const address = this.fetch16();
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
+        let address = this.fetch16();
 
         if (registerValue < this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -453,8 +453,8 @@ class CPU {
         return;
       }
       case instructions.JGT_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        let value = this.fetch16();
+        let address = this.fetch16();
 
         if (value > this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -463,9 +463,9 @@ class CPU {
         return;
       }
       case instructions.JGT_REG: {
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(register);
-        const address = this.fetch16();
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
+        let address = this.fetch16();
 
         if (registerValue > this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -474,8 +474,8 @@ class CPU {
         return;
       }
       case instructions.JLE_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        let value = this.fetch16();
+        let address = this.fetch16();
 
         if (value <= this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -484,9 +484,9 @@ class CPU {
         return;
       }
       case instructions.JLE_REG: {
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(register);
-        const address = this.fetch16();
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
+        let address = this.fetch16();
 
         if (registerValue <= this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -495,8 +495,8 @@ class CPU {
         return;
       }
       case instructions.JGE_LIT: {
-        const value = this.fetch16();
-        const address = this.fetch16();
+        let value = this.fetch16();
+        let address = this.fetch16();
 
         if (value >= this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -505,9 +505,9 @@ class CPU {
         return;
       }
       case instructions.JGE_REG: {
-        const register = this.fetchRegisterIndex();
-        const registerValue = this.registers.getUint16(register);
-        const address = this.fetch16();
+        let register = this.fetchRegisterIndex();
+        let registerValue = this.registers.getUint16(register);
+        let address = this.fetch16();
 
         if (registerValue >= this.getRegister("acc")) {
           this.setRegister("ip", address);
@@ -516,29 +516,29 @@ class CPU {
         return;
       }
       case instructions.PSH_LIT: {
-        const value = this.fetch16();
+        let value = this.fetch16();
 
         this.stackPush(value);
 
         return;
       }
       case instructions.PSH_REG: {
-        const registerIndex = this.fetchRegisterIndex();
+        let registerIndex = this.fetchRegisterIndex();
 
         this.stackPush(this.registers.getUint16(registerIndex));
 
         return;
       }
       case instructions.POP: {
-        const registerIndex = this.fetchRegisterIndex();
-        const value = this.stackPop();
+        let registerIndex = this.fetchRegisterIndex();
+        let value = this.stackPop();
 
         this.registers.setUint16(registerIndex, value);
 
         return;
       }
       case instructions.CAL_LIT: {
-        const address = this.fetch16();
+        let address = this.fetch16();
 
         this.stackPushState();
         this.setRegister("ip", address);
@@ -546,8 +546,8 @@ class CPU {
         return;
       }
       case instructions.CAL_REG: {
-        const registerIndex = this.fetchRegisterIndex();
-        const address = this.registers.getUint16(registerIndex);
+        let registerIndex = this.fetchRegisterIndex();
+        let address = this.registers.getUint16(registerIndex);
 
         this.stackPushState();
         this.setRegister("ip", address);
@@ -566,13 +566,13 @@ class CPU {
   }
 
   step() {
-    const instruction = this.fetch();
+    let instruction = this.fetch();
 
     return this.execute(instruction);
   }
 
   run() {
-    const halt = this.step();
+    let halt = this.step();
 
     if (!halt) {
       setImmediate(() => this.run());

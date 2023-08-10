@@ -4,7 +4,7 @@ export default class MemoryMapper {
   }
 
   map(device, start, end, remap = true) {
-    const region = {
+    let region = {
       device,
       start,
       end,
@@ -29,29 +29,29 @@ export default class MemoryMapper {
   }
 
   getUint16(address) {
-    const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    let region = this.findRegion(address);
+    let finalAddress = region.remap ? address - region.start : address;
 
     return region.device.getUint16(finalAddress);
   }
 
   getUint8(address) {
-    const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    let region = this.findRegion(address);
+    let finalAddress = region.remap ? address - region.start : address;
 
     return region.device.getUint8(finalAddress);
   }
 
   setUint16(address, value) {
-    const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    let region = this.findRegion(address);
+    let finalAddress = region.remap ? address - region.start : address;
 
     return region.device.setUint16(finalAddress, value);
   }
 
   setUint8(address, value) {
-    const region = this.findRegion(address);
-    const finalAddress = region.remap ? address - region.start : address;
+    let region = this.findRegion(address);
+    let finalAddress = region.remap ? address - region.start : address;
 
     return region.device.setUint8(finalAddress, value);
   }

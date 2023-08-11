@@ -29,50 +29,51 @@ let base = (mnemonic, instruction, argsParsers) =>
     return T.instruction({ instruction, args });
   });
 
-export let litReg = (mnemonic, type) =>
-  base(mnemonic, type, [
+export let litReg = (mnemonic, instruction) =>
+  base(mnemonic, instruction, [
     as.choice([hexLiteralParser, squareBracketExpressionParser]),
     registerParser,
   ]);
 
-export let regLit = (mnemonic, type) =>
-  base(mnemonic, type, [
+export let regLit = (mnemonic, instruction) =>
+  base(mnemonic, instruction, [
     registerParser,
     as.choice([hexLiteralParser, squareBracketExpressionParser]),
   ]);
 
-export let regReg = (mnemonic, type) => base(mnemonic, type, [registerParser, registerParser]);
+export let regReg = (mnemonic, instruction) =>
+  base(mnemonic, instruction, [registerParser, registerParser]);
 
-export let regMem = (mnemonic, type) =>
-  base(mnemonic, type, [
+export let regMem = (mnemonic, instruction) =>
+  base(mnemonic, instruction, [
     registerParser,
     as.choice([addressParser, as.char("&").chain(() => squareBracketExpressionParser)]),
   ]);
 
-export let memReg = (mnemonic, type) =>
-  base(mnemonic, type, [
+export let memReg = (mnemonic, instruction) =>
+  base(mnemonic, instruction, [
     as.choice([addressParser, as.char("&").chain(() => squareBracketExpressionParser)]),
     registerParser,
   ]);
 
-export let litMem = (mnemonic, type) =>
-  base(mnemonic, type, [
+export let litMem = (mnemonic, instruction) =>
+  base(mnemonic, instruction, [
     as.choice([hexLiteralParser, squareBracketExpressionParser]),
     as.choice([addressParser, as.char("&").chain(() => squareBracketExpressionParser)]),
   ]);
 
-export let regPtrReg = (mnemonic, type) =>
-  base(mnemonic, type, [as.char("&").chain(() => registerParser), registerParser]);
+export let regPtrReg = (mnemonic, instruction) =>
+  base(mnemonic, instruction, [as.char("&").chain(() => registerParser), registerParser]);
 
-export let litOffReg = (mnemonic, type) =>
-  base(mnemonic, type, [
+export let litOffReg = (mnemonic, instruction) =>
+  base(mnemonic, instruction, [
     as.choice([hexLiteralParser, squareBracketExpressionParser]),
     as.char("&").chain(() => registerParser),
   ]);
 
-export let noArgs = (mnemonic, type) => base(mnemonic, type, []);
+export let noArgs = (mnemonic, instruction) => base(mnemonic, instruction, []);
 
-export let singleReg = (mnemonic, type) => base(mnemonic, type, [registerParser]);
+export let singleReg = (mnemonic, instruction) => base(mnemonic, instruction, [registerParser]);
 
-export let singleLit = (mnemonic, type) =>
-  base(mnemonic, type, [as.choice([hexLiteralParser, squareBracketExpressionParser])]);
+export let singleLit = (mnemonic, instruction) =>
+  base(mnemonic, instruction, [as.choice([hexLiteralParser, squareBracketExpressionParser])]);

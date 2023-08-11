@@ -30,6 +30,9 @@ export const INSTRUCTION_TYPE_SIZE = {
 };
 
 export let meta = [
+  { instruction: "INT", opcode: 0xfd, type: INSTRUCTION_TYPE.SINGLE_LIT, mnemonic: "int" },
+  { instruction: "RET_INT", opcode: 0xfc, type: INSTRUCTION_TYPE.NO_ARGS, mnemonic: "rti" },
+
   { instruction: "MOV_LIT_REG", opcode: 0x10, type: INSTRUCTION_TYPE.LIT_REG, mnemonic: "mov" },
   { instruction: "MOV_REG_REG", opcode: 0x11, type: INSTRUCTION_TYPE.REG_REG, mnemonic: "mov" },
   { instruction: "MOV_REG_MEM", opcode: 0x12, type: INSTRUCTION_TYPE.REG_MEM, mnemonic: "mov" },

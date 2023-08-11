@@ -3,7 +3,7 @@ import instructions from "./instructions/index.js";
 import registers from "./registers.js";
 
 class CPU {
-  constructor(memory) {
+  constructor(memory, interruptVectorAddress = 0x1000) {
     this.memory = memory;
     this.registers = createMemory(registers.length * 2);
     this.registerMap = registers.reduce((map, name, i) => {
@@ -12,6 +12,10 @@ class CPU {
       return map;
     }, {});
 
+    this.interruptVectorAddress = interruptVectorAddress;
+    this.isInInterruptHandler = false;
+
+    this.setRegister("im", 0xffff);
     this.setRegister("sp", 0xffff - 1);
     this.setRegister("fp", 0xffff - 1);
 
@@ -130,8 +134,43 @@ class CPU {
     return (this.fetch() % registers.length) * 2;
   }
 
+  handleInterrupt(value) {
+    let interruptVectorIndex = value % 0xf;
+    let isUnmasked = Boolean((1 << interruptVectorIndex) & this.getRegister("im"));
+
+    if (!isUnmasked) return;
+
+    let addressPointer = this.interruptVectorAddress + interruptVectorIndex * 2;
+    let address = this.memory.getUint16(addressPointer);
+
+    if (!this.isInInterruptHandler) {
+      this.stackPush(0);
+      this.stackPushState();
+    }
+
+    this.isInInterruptHandler = true;
+
+    this.setRegister("ip", address);
+  }
+
   execute(instruction) {
     switch (instruction) {
+      case instructions.INT.opcode: {
+        let interruptValue = this.fetch16();
+
+        this.handleInterrupt(interruptValue);
+
+        return;
+      }
+
+      case instructions.RET_INT.opcode: {
+        this.isInInterruptHandler = false;
+
+        this.popState();
+
+        return;
+      }
+
       case instructions.MOV_LIT_REG.opcode: {
         let literal = this.fetch16();
         let register = this.fetchRegisterIndex();

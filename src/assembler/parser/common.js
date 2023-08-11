@@ -1,11 +1,11 @@
 import as from "arcsecond";
 
+import registers from "../../registers.js";
 import * as T from "./types.js";
 import { mapJoin } from "./util.js";
 
 export let ignoreCaseParser = (str) => as.regex(new RegExp(`^${str}`, "i"));
 
-let registers = ["r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "sp", "fp", "ip", "acc"];
 export let registerParser = as.choice(registers.map((r) => ignoreCaseParser(r))).map(T.register);
 
 let hexDigitParser = as.regex(/^[0-9A-F]/i);

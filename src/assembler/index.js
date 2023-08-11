@@ -47,16 +47,21 @@ let encodeLiteral8 = (literal) => {
 let encodeRegister = (register) => [registerMap.get(register.value)];
 
 let program = `
-start:
-  mov $0a, &0050
-loop:
-  mov &0050, acc
-  dec acc
-  mov acc, &0050
-  add $03, r2
-  jne $00, &[!loop]
-end:
-  hlt
+mov $01, r1
+mov $02, r2
+psh $0003
+
+int $03
+
+mov $01, r3
+lsf r3, $03
+not r3
+and im, acc
+mov acc, im
+
+int $03
+
+mov $05, r5
 `.trim();
 
 let output = parser.run(program);

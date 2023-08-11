@@ -31,8 +31,8 @@ export let sub = as.choice([
 ]);
 export let mul = as.choice([regReg("mul", "MUL_REG_REG"), litReg("mul", "MUL_LIT_REG")]);
 
-export let lsf = as.choice([regReg("lsf", "LSF_REG_REG"), regLit("lsf", "LSF_LIT_REG")]);
-export let rsf = as.choice([regReg("rsf", "RSF_REG_REG"), regLit("rsf", "RSF_LIT_REG")]);
+export let lsf = as.choice([regReg("lsf", "LSF_REG_REG"), regLit("lsf", "LSF_REG_LIT")]);
+export let rsf = as.choice([regReg("rsf", "RSF_REG_REG"), regLit("rsf", "RSF_REG_LIT")]);
 
 export let and = as.choice([regReg("and", "AND_REG_REG"), litReg("and", "AND_LIT_REG")]);
 export let or = as.choice([regReg("or", "OR_REG_REG"), litReg("or", "OR_LIT_REG")]);
@@ -55,6 +55,9 @@ export let pop = singleReg("pop", "POP_REG");
 export let cal = as.choice([singleLit("cal", "CAL_LIT"), singleReg("cal", "CAL_REG")]);
 export let ret = noArgs("reg", "RET");
 export let hlt = noArgs("hlt", "HLT");
+
+export let int = singleLit("int", "INT");
+export let rti = noArgs("rti", "RET_INT");
 
 export default as.choice([
   mov,
@@ -80,4 +83,6 @@ export default as.choice([
   cal,
   ret,
   hlt,
+  int,
+  rti,
 ]);

@@ -1,56 +1,35 @@
-import createScreenDevice from "./screen-device.js";
+import CPU from "./cpu.js";
 import createMemory from "./create-memory.js";
 import MemoryMapper from "./memory-mapper.js";
-import CPU from "./cpu.js";
-import * as instructions from "./instructions.js";
 
-const IP = 0;
-const ACC = 1;
-const R1 = 2;
-const R2 = 3;
-const R3 = 4;
-const R4 = 5;
-const R5 = 6;
-const R6 = 7;
-const R7 = 8;
-const R8 = 9;
-const SP = 10;
-const FP = 11;
+let MM = new MemoryMapper();
 
-const MM = new MemoryMapper();
+let createBankedMemory = (n, size, cpu) => {
+  let banks = Array.from({ length: n }, () => createMemory(size));
 
-const memory = createMemory(256 * 256);
+  const forwardToDataView =
+    (name) =>
+    (...args) => {
+      let bankIndex = cpu.getRegister("mb") % n;
+      let bank = banks[bankIndex];
 
-MM.map(memory, 0, 0xffff);
-MM.map(createScreenDevice(), 0x3000, 0x30ff, true);
+      return bank[name](...args);
+    };
 
-const writableBytes = new Uint8Array(memory.buffer);
+  return ["getUint8", "getUint16", "setUint8", "setUint16"].reduce((interface_, fnName) => {
+    interface_[fnName] = forwardToDataView(fnName);
 
-const cpu = new CPU(MM);
-
-const subroutineAddress = 0x3000;
-let i = 0;
-
-const writeCharToScreen = (char, cmd, position) => {
-  writableBytes[i++] = instructions.MOV_LIT_REG;
-  writableBytes[i++] = cmd;
-  writableBytes[i++] = char.charCodeAt(0);
-  writableBytes[i++] = R1;
-
-  writableBytes[i++] = instructions.MOV_REG_MEM;
-  writableBytes[i++] = R1;
-  writableBytes[i++] = 0x30;
-  writableBytes[i++] = position;
+    return interface_;
+  }, {});
 };
 
-writeCharToScreen(" ", 0xff, 0);
+const BANK_SIZE = 0xff; // 255
+const BANKS_COUNT = 8;
 
-for (let index = 0; index <= 0xff; index++) {
-  const command = index % 2 === 0 ? 0x01 : 0x02;
+let cpu = new CPU(MM);
 
-  writeCharToScreen("*", command, index);
-}
+let memoryBankDevice = createBankedMemory(BANKS_COUNT, BANK_SIZE, cpu);
+let regularMemory = createMemory(0xff00); // 65280
 
-writableBytes[i++] = instructions.HLT;
-
-cpu.run();
+MM.map(memoryBankDevice, 0, BANK_SIZE);
+MM.map(regularMemory, BANK_SIZE, 0xffff, true);

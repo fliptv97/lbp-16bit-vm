@@ -1,21 +1,13 @@
 import parser from "./parser/index.js";
 import INSTRUCTION_METADATA from "../instructions/index.js";
 import { INSTRUCTION_TYPE as I, INSTRUCTION_TYPE_SIZE } from "../instructions/meta.js";
+import registers from "../registers.js";
 
-const REGISTER = {
-  IP: 0,
-  ACC: 1,
-  R1: 2,
-  R2: 3,
-  R3: 4,
-  R4: 5,
-  R5: 6,
-  R6: 7,
-  R7: 8,
-  R8: 9,
-  SP: 10,
-  FP: 11,
-};
+let registerMap = registers.reduce((map, registerName, index) => {
+  map.set(registerName, index);
+
+  return map;
+}, new Map());
 
 let encodeLiteralOrMemory = (literal) => {
   let hexValue;
@@ -52,7 +44,7 @@ let encodeLiteral8 = (literal) => {
   return [hexValue & 0x00ff];
 };
 
-let encodeRegister = (register) => [REGISTER[register.value.toUpperCase()]];
+let encodeRegister = (register) => [registerMap.get(register.value)];
 
 let program = `
 start:

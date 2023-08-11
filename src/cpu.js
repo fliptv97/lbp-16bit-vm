@@ -1,15 +1,12 @@
 import createMemory from "./create-memory.js";
 import instructions from "./instructions/index.js";
+import registers from "./registers.js";
 
 class CPU {
   constructor(memory) {
     this.memory = memory;
-
-    this.registerNames = ["ip", "acc", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "sp", "fp"];
-
-    this.registers = createMemory(this.registerNames.length * 2);
-
-    this.registerMap = this.registerNames.reduce((map, name, i) => {
+    this.registers = createMemory(registers.length * 2);
+    this.registerMap = registers.reduce((map, name, i) => {
       map[name] = i * 2;
 
       return map;
@@ -22,7 +19,7 @@ class CPU {
   }
 
   debug() {
-    this.registerNames.forEach((name) => {
+    registers.forEach((name) => {
       console.log(`${name}: 0x${this.getRegister(name).toString(16).padStart(4, "0")}`);
     });
     console.log();
@@ -130,7 +127,7 @@ class CPU {
   }
 
   fetchRegisterIndex() {
-    return (this.fetch() % this.registerNames.length) * 2;
+    return (this.fetch() % registers.length) * 2;
   }
 
   execute(instruction) {

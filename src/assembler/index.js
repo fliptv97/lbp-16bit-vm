@@ -17,35 +17,6 @@ const REGISTER = {
   FP: 11,
 };
 
-let program = `
-start:
-  mov $0a, &0050
-loop:
-  mov &0050, acc
-  dec acc
-  mov acc, &0050
-  add $03, r2
-  jne $00, &[!loop]
-end:
-  hlt
-`.trim();
-
-let output = parser.run(program);
-let machineCode = [];
-let labels = new Map();
-
-let currentAddress = 0;
-
-output.result.forEach((el) => {
-  if (el.type === "LABEL") {
-    labels.set(el.value, currentAddress);
-  } else {
-    let metadata = INSTRUCTION_METADATA[el.value.instruction];
-
-    currentAddress += INSTRUCTION_TYPE_SIZE[metadata.type];
-  }
-});
-
 let encodeLiteralOrMemory = (literal) => {
   let hexValue;
 
@@ -62,7 +33,7 @@ let encodeLiteralOrMemory = (literal) => {
   let highByte = (hexValue & 0xff00) >> 8;
   let lowByte = hexValue & 0x00ff;
 
-  machineCode.push(highByte, lowByte);
+  return [highByte, lowByte];
 };
 
 let encodeLiteral8 = (literal) => {
@@ -78,12 +49,47 @@ let encodeLiteral8 = (literal) => {
     hexValue = parseInt(literal.value, 16);
   }
 
-  machineCode.push(hexValue & 0x00ff);
+  return [hexValue & 0x00ff];
 };
 
-let encodeRegister = (register) => {
-  machineCode.push(REGISTER[register.value.toUpperCase()]);
-};
+let encodeRegister = (register) => [REGISTER[register.value.toUpperCase()]];
+
+let program = `
+start:
+  mov $0a, &0050
+loop:
+  mov &0050, acc
+  dec acc
+  mov acc, &0050
+  add $03, r2
+  jne $00, &[!loop]
+end:
+  hlt
+`.trim();
+
+let output = parser.run(program);
+let machineCode = [];
+
+let { labels } = output.result.reduce(
+  (acc, el) => {
+    if (el.type === "LABEL") {
+      acc.labels.set(el.value, acc.currentAddress);
+
+      return acc;
+    } else {
+      let metadata = INSTRUCTION_METADATA[el.value.instruction];
+
+      return {
+        ...acc,
+        currentAddress: acc.currentAddress + INSTRUCTION_TYPE_SIZE[metadata.type],
+      };
+    }
+  },
+  {
+    labels: new Map(),
+    currentAddress: 0,
+  }
+);
 
 output.result.forEach((instruction) => {
   if (instruction.type !== "INSTRUCTION") return;
@@ -96,44 +102,44 @@ output.result.forEach((instruction) => {
   switch (metadata.type) {
     case I.LIT_REG:
     case I.MEM_REG:
-      encodeLiteralOrMemory(args[0]);
-      encodeRegister(args[1]);
+      machineCode.push(...encodeLiteralOrMemory(args[0]));
+      machineCode.push(...encodeRegister(args[1]));
 
       break;
     case I.REG_LIT:
     case I.REG_MEM:
-      encodeRegister(args[0]);
-      encodeLiteralOrMemory(args[1]);
+      machineCode.push(...encodeRegister(args[0]));
+      machineCode.push(...encodeLiteralOrMemory(args[1]));
 
       break;
     case I.REG_LIT_8:
-      encodeRegister(args[0]);
-      encodeLiteral8(args[1]);
+      machineCode.push(...encodeRegister(args[0]));
+      machineCode.push(...encodeLiteral8(args[1]));
 
       break;
     case I.LIT_MEM:
-      encodeLiteralOrMemory(args[0]);
-      encodeLiteralOrMemory(args[1]);
+      machineCode.push(...encodeLiteralOrMemory(args[0]));
+      machineCode.push(...encodeLiteralOrMemory(args[1]));
 
       break;
     case I.REG_REG:
     case I.REG_PTR_REG:
-      encodeRegister(args[0]);
-      encodeRegister(args[1]);
+      machineCode.push(...encodeRegister(args[0]));
+      machineCode.push(...encodeRegister(args[1]));
 
       break;
     case I.LIT_OFF_REG:
-      encodeLiteralOrMemory(args[0]);
-      encodeRegister(args[1]);
-      encodeRegister(args[2]);
+      machineCode.push(...encodeLiteralOrMemory(args[0]));
+      machineCode.push(...encodeRegister(args[1]));
+      machineCode.push(...encodeRegister(args[2]));
 
       break;
     case I.SINGLE_REG:
-      encodeRegister(args[0]);
+      machineCode.push(...encodeRegister(args[0]));
 
       break;
     case I.SINGLE_LIT:
-      encodeLiteralOrMemory(args[0]);
+      machineCode.push(...encodeLiteralOrMemory(args[0]));
 
       break;
   }

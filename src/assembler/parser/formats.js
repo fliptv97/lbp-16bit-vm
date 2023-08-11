@@ -4,223 +4,75 @@ import * as T from "./types.js";
 import { ignoreCaseParser, hexLiteralParser, addressParser, registerParser } from "./common.js";
 import { squareBracketExpressionParser } from "./expressions.js";
 
-export let litReg = (mnemonic, type) =>
+let base = (mnemonic, instruction, argsParsers) =>
   as.coroutine((run) => {
     run(ignoreCaseParser(mnemonic));
-    run(as.whitespace);
 
-    let arg1 = run(as.choice([hexLiteralParser, squareBracketExpressionParser]));
+    let args = [];
+
+    if (argsParsers.length > 0) {
+      run(as.whitespace);
+
+      args.push(run(argsParsers[0]));
+
+      argsParsers.slice(1).forEach((parser) => {
+        run(as.optionalWhitespace);
+        run(as.char(","));
+        run(as.optionalWhitespace);
+
+        args.push(run(parser));
+      });
+    }
 
     run(as.optionalWhitespace);
-    run(as.char(","));
-    run(as.optionalWhitespace);
 
-    let arg2 = run(registerParser);
-
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [arg1, arg2],
-    });
+    return T.instruction({ instruction, args });
   });
+
+export let litReg = (mnemonic, type) =>
+  base(mnemonic, type, [
+    as.choice([hexLiteralParser, squareBracketExpressionParser]),
+    registerParser,
+  ]);
 
 export let regLit = (mnemonic, type) =>
-  as.coroutine((run) => {
-    run(ignoreCaseParser(mnemonic));
-    run(as.whitespace);
+  base(mnemonic, type, [
+    registerParser,
+    as.choice([hexLiteralParser, squareBracketExpressionParser]),
+  ]);
 
-    let arg1 = run(registerParser);
-
-    run(as.optionalWhitespace);
-    run(as.char(","));
-    run(as.optionalWhitespace);
-
-    let arg2 = run(as.choice([hexLiteralParser, squareBracketExpressionParser]));
-
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [arg1, arg2],
-    });
-  });
-
-export let regReg = (mnemonic, type) =>
-  as.coroutine((run) => {
-    run(ignoreCaseParser(mnemonic));
-    run(as.whitespace);
-
-    let arg1 = run(registerParser);
-
-    run(as.optionalWhitespace);
-    run(as.char(","));
-    run(as.optionalWhitespace);
-
-    let arg2 = run(registerParser);
-
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [arg1, arg2],
-    });
-  });
+export let regReg = (mnemonic, type) => base(mnemonic, type, [registerParser, registerParser]);
 
 export let regMem = (mnemonic, type) =>
-  as.coroutine((run) => {
-    run(ignoreCaseParser(mnemonic));
-    run(as.whitespace);
-
-    let arg1 = run(registerParser);
-
-    run(as.optionalWhitespace);
-    run(as.char(","));
-    run(as.optionalWhitespace);
-
-    let arg2 = run(
-      as.choice([addressParser, as.char("&").chain(() => squareBracketExpressionParser)])
-    );
-
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [arg1, arg2],
-    });
-  });
+  base(mnemonic, type, [
+    registerParser,
+    as.choice([addressParser, as.char("&").chain(() => squareBracketExpressionParser)]),
+  ]);
 
 export let memReg = (mnemonic, type) =>
-  as.coroutine((run) => {
-    run(ignoreCaseParser(mnemonic));
-    run(as.whitespace);
-
-    let arg1 = run(
-      as.choice([addressParser, as.char("&").chain(() => squareBracketExpressionParser)])
-    );
-
-    run(as.optionalWhitespace);
-    run(as.char(","));
-    run(as.optionalWhitespace);
-
-    let arg2 = run(registerParser);
-
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [arg1, arg2],
-    });
-  });
+  base(mnemonic, type, [
+    as.choice([addressParser, as.char("&").chain(() => squareBracketExpressionParser)]),
+    registerParser,
+  ]);
 
 export let litMem = (mnemonic, type) =>
-  as.coroutine((run) => {
-    run(ignoreCaseParser(mnemonic));
-    run(as.whitespace);
-
-    let arg1 = run(as.choice([hexLiteralParser, squareBracketExpressionParser]));
-
-    run(as.optionalWhitespace);
-    run(as.char(","));
-    run(as.optionalWhitespace);
-
-    let arg2 = run(
-      as.choice([addressParser, as.char("&").chain(() => squareBracketExpressionParser)])
-    );
-
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [arg1, arg2],
-    });
-  });
+  base(mnemonic, type, [
+    as.choice([hexLiteralParser, squareBracketExpressionParser]),
+    as.choice([addressParser, as.char("&").chain(() => squareBracketExpressionParser)]),
+  ]);
 
 export let regPtrReg = (mnemonic, type) =>
-  as.coroutine((run) => {
-    run(ignoreCaseParser(mnemonic));
-    run(as.whitespace);
-
-    let arg1 = run(as.char("&").chain(() => registerParser));
-
-    run(as.optionalWhitespace);
-    run(as.char(","));
-    run(as.optionalWhitespace);
-
-    let arg2 = run(registerParser);
-
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [arg1, arg2],
-    });
-  });
+  base(mnemonic, type, [as.char("&").chain(() => registerParser), registerParser]);
 
 export let litOffReg = (mnemonic, type) =>
-  as.coroutine((run) => {
-    run(ignoreCaseParser(mnemonic));
-    run(as.whitespace);
+  base(mnemonic, type, [
+    as.choice([hexLiteralParser, squareBracketExpressionParser]),
+    as.char("&").chain(() => registerParser),
+  ]);
 
-    let arg1 = run(as.choice([hexLiteralParser, squareBracketExpressionParser]));
+export let noArgs = (mnemonic, type) => base(mnemonic, type, []);
 
-    run(as.optionalWhitespace);
-    run(as.char(","));
-    run(as.optionalWhitespace);
-
-    let arg2 = run(as.char("&").chain(() => registerParser));
-
-    run(as.optionalWhitespace);
-    run(as.char(","));
-    run(as.optionalWhitespace);
-
-    let arg3 = run(registerParser);
-
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [arg1, arg2, arg3],
-    });
-  });
-
-export let noArgs = (mnemonic, type) =>
-  as.coroutine((run) => {
-    run(ignoreCaseParser(mnemonic));
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [],
-    });
-  });
-
-export let singleReg = (mnemonic, type) =>
-  as.coroutine((run) => {
-    run(ignoreCaseParser(mnemonic));
-    run(as.whitespace);
-
-    let arg1 = run(registerParser);
-
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [arg1],
-    });
-  });
+export let singleReg = (mnemonic, type) => base(mnemonic, type, [registerParser]);
 
 export let singleLit = (mnemonic, type) =>
-  as.coroutine((run) => {
-    run(ignoreCaseParser(mnemonic));
-    run(as.whitespace);
-
-    let arg1 = run(as.choice([hexLiteralParser, squareBracketExpressionParser]));
-
-    run(as.optionalWhitespace);
-
-    return T.instruction({
-      instruction: type,
-      args: [arg1],
-    });
-  });
+  base(mnemonic, type, [as.choice([hexLiteralParser, squareBracketExpressionParser])]);

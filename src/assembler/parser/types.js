@@ -15,3 +15,5 @@ export let squareBracketExpression = asType("SQUARE_BRACKET_EXPRESSION");
 
 export let instruction = asType("INSTRUCTION");
 export let label = asType("LABEL");
+export let data = asType("DATA");
+export let constant = asType("CONSTANT");

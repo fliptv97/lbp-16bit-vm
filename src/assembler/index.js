@@ -13,11 +13,11 @@ let encodeLiteralOrMemory = (literal) => {
   let hexValue;
 
   if (literal.type === "VARIABLE") {
-    if (!labels.has(literal.value)) {
+    if (!symbolicNames.has(literal.value)) {
       throw new Error(`label "${literal.value}" wasn't resolved`);
     }
 
-    hexValue = labels.get(literal.value);
+    hexValue = symbolicNames.get(literal.value);
   } else {
     hexValue = parseInt(literal.value, 16);
   }
@@ -32,11 +32,11 @@ let encodeLiteral8 = (literal) => {
   let hexValue;
 
   if (literal.type === "VARIABLE") {
-    if (!labels.has(literal.value)) {
+    if (!symbolicNames.has(literal.value)) {
       throw new Error(`label "${literal.value}" wasn't resolved`);
     }
 
-    hexValue = labels.get(literal.value);
+    hexValue = symbolicNames.get(literal.value);
   } else {
     hexValue = parseInt(literal.value, 16);
   }
@@ -46,53 +46,91 @@ let encodeLiteral8 = (literal) => {
 
 let encodeRegister = (register) => [registerMap.get(register.value)];
 
+const encodeData8 = (node) => node.value.values.map((byte) => parseInt(byte.value, 16) & 0xff);
+const encodeData16 = (node) =>
+  node.value.values
+    .map((byte) => {
+      const parsed = parseInt(byte.value, 16);
+
+      return [(parsed & 0xff00) >> 8, parsed & 0xff];
+    })
+    .flat();
+
 let program = `
-mov $01, r1
-mov $02, r2
-psh $0003
+constant code_constant = $C0DE
 
-int $03
++data8 bytes = { $01, $02, $03, $04 }
+data16 words = { $0506, $0708, $090A, $0B0C }
 
-mov $01, r3
-lsf r3, $03
-not r3
-and im, acc
-mov acc, im
-
-int $03
-
-mov $05, r5
+code:
+  mov [!code_constant], &1234
 `.trim();
 
 let output = parser.run(program);
+
+if (output.isError) {
+  throw new Error(output.error);
+}
+
 let machineCode = [];
 
-let { labels } = output.result.reduce(
-  (acc, el) => {
-    if (el.type === "LABEL") {
-      acc.labels.set(el.value, acc.currentAddress);
+let { symbolicNames } = output.result.reduce(
+  (acc, node) => {
+    switch (node.type) {
+      case "LABEL": {
+        acc.symbolicNames.set(node.value, acc.currentAddress);
 
-      return acc;
-    } else {
-      let metadata = INSTRUCTION_METADATA[el.value.instruction];
+        return acc;
+      }
+      case "CONSTANT": {
+        acc.symbolicNames.set(node.value.name, parseInt(node.value.value.value, 16) & 0xffff);
 
-      return {
-        ...acc,
-        currentAddress: acc.currentAddress + INSTRUCTION_TYPE_SIZE[metadata.type],
-      };
+        return acc;
+      }
+      case "DATA": {
+        acc.symbolicNames.set(node.value.name, acc.currentAddress);
+
+        const size = node.value.size === 16 ? 2 : 1;
+        const totalSize = node.value.values.length * size;
+
+        return {
+          ...acc,
+          currentAddress: acc.currentAddress + totalSize,
+        };
+      }
+      default: {
+        let metadata = INSTRUCTION_METADATA[node.value.instruction];
+
+        return {
+          ...acc,
+          currentAddress: acc.currentAddress + INSTRUCTION_TYPE_SIZE[metadata.type],
+        };
+      }
     }
   },
   {
-    labels: new Map(),
+    symbolicNames: new Map(),
     currentAddress: 0,
   }
 );
 
-output.result.forEach((instruction) => {
-  if (instruction.type !== "INSTRUCTION") return;
+output.result.forEach((node) => {
+  if (node.type === "LABEL" || node.type === "CONSTANT") {
+    return;
+  }
 
-  let args = instruction.value.args;
-  let metadata = INSTRUCTION_METADATA[instruction.value.instruction];
+  if (node.type === "DATA") {
+    if (node.value.size === 8) {
+      machineCode.push(...encodeData8(node));
+    } else {
+      machineCode.push(...encodeData16(node));
+    }
+
+    return;
+  }
+
+  let args = node.value.args;
+  let metadata = INSTRUCTION_METADATA[node.value.instruction];
 
   machineCode.push(metadata.opcode);
 
@@ -142,4 +180,6 @@ output.result.forEach((instruction) => {
   }
 });
 
+console.log("RESULT:");
+console.log("RAW:", machineCode);
 console.log(machineCode.map((el) => `0x${el.toString(16).padStart(2, "0")}`).join(" "));

@@ -19,18 +19,18 @@ export let addressParser = as
   .chain(() => mapJoin(as.many1(hexDigitParser)))
   .map(T.address);
 
-export let validIdentifier = mapJoin(
+export let validIdentifierParser = mapJoin(
   as.sequenceOf([
     as.regex(/^[a-z_]/i),
     as.possibly(as.regex(/^[a-z0-9_]+/i)).map((x) => (x === null ? "" : x)),
   ])
 );
 export let variableParser = as
-  .sequenceOf([as.char("!"), validIdentifier])
+  .sequenceOf([as.char("!"), validIdentifierParser])
   .map((results) => T.variable(results[1]));
 
 export let labelParser = as
-  .sequenceOf([validIdentifier, as.char(":"), as.optionalWhitespace])
+  .sequenceOf([validIdentifierParser, as.char(":"), as.optionalWhitespace])
   .map(([labelName]) => labelName)
   .map(T.label);
 
